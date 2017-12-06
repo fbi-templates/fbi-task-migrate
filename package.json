@@ -1,0 +1,24 @@
+{
+  "name": "fbi-task-migrate",
+  "version": "0.0.1",
+  "description": "Migration task for fbi v3.0",
+  "main": "index.js",
+  "scripts": {
+    "release-patch": "npm version patch && git push && git push --tags",
+    "release-minor": "npm version minor && git push && git push --tags",
+    "release-major": "npm version major && git push && git push --tags"
+  },
+  "keywords": ["fbi", "migrate", "backwards", "compatible"],
+  "author": "fbi",
+  "license": "MIT",
+  "fbi": {
+    "template": {
+      "name": "fbi-task-migrate"
+    },
+    "tasks": {
+      "migrate": {
+        "alias": "m"
+      }
+    }
+  }
+}
