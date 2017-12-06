@@ -1,5 +1,5 @@
 # fbi-task-migrate
-Migration a fbi 2.x project to 3.0
+Migrate a fbi 2.x project to 3.0
 
 > This is a fbi task. If you haven't installed [fbi](https://github.com/AlloyTeam/fbi) yet, use the following command to install.
 >
