@@ -32,5 +32,9 @@ If you have custom options or custom building logic, you need to migrate them ma
 
 ## Changelog
 
+- **2017.12.06** (Version: `1.0.1`)
+1. Fix template path
+
+
 - **2017.12.06** (Version: `1.0.0`)
 1. Init. Support `fbi-project-vue`(formerly `vue2`)

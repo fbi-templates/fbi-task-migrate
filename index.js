@@ -127,7 +127,7 @@ module.exports = async () => {
   // 1. set template info
   const tmplInfo = await setTemplateInfo(projOpts)
   ctx.logger.log('1. Template information has set in `paskage.json`.')
-  const tmplOptsPath = path.join(tmplInfo.repo, ctx.configs.TEMPLATE_CONFIG)
+  const tmplOptsPath = path.join(tmplInfo.path, ctx.configs.TEMPLATE_CONFIG)
   ctx.logger.debug('tmplOptsPath:', tmplOptsPath)
   const tmplOpts = await getOptions(tmplOptsPath)
 
@@ -140,7 +140,7 @@ module.exports = async () => {
 
   // 3. copy new tasks & options
   await ctx.utils.fs.copy({
-    from: path.join(tmplInfo.repo, ctx.configs.TEMPLATE_TASKS),
+    from: path.join(tmplInfo.path, ctx.configs.TEMPLATE_TASKS),
     to: taskFolder,
     quiet: true
   })
