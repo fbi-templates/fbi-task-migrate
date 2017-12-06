@@ -35,7 +35,7 @@ async function setTemplateInfo(projOpts) {
 
   // Check if template exist
   if (!tmplInfo) {
-    throw `Template \`${newTmplName}\` not exist.`
+    throw `New template \`${newTmplName}\` not found. \nMake sure it is installed and the name is correct. \nOfficial templates: https://github.com/fbi-templates`
   }
 
   // Check if template version exist
@@ -109,6 +109,27 @@ function mergeOptions(projOpts, tmplOpts) {
   return tmplOpts.cnt
 }
 
+async function installDeps(tmplInfo) {
+  // `Vue2`: install vue-template-compiler.
+  try {
+    const localPKg = require(ctx.utils.path.cwd('package.json'))
+    switch (tmplInfo.fullname) {
+      case 'fbi-project-vue':
+        const vueVersion = localPKg.dependencies.vue
+        await ctx.install('', [`vue-template-compiler@${vueVersion}`], null, [
+          {
+            path: process.cwd(),
+            type: 'prod',
+            force: true
+          }
+        ])
+        break
+      default:
+        break
+    }
+  } catch (err) {}
+}
+
 module.exports = async () => {
   const projOptsPath = ctx.utils.path.cwd('fbi/config.js')
   ctx.logger.debug('projOptsPath:', projOptsPath)
@@ -123,10 +144,14 @@ module.exports = async () => {
       throw 'Local project options not found.'
     }
   }
+  let num = 0
 
   // 1. set template info
   const tmplInfo = await setTemplateInfo(projOpts)
-  ctx.logger.log('1. Template information has set in `paskage.json`.')
+  if (!tmplInfo) {
+    return
+  }
+  ctx.logger.log(`${num++}. Template information has set in \`paskage.json\`.`)
   const tmplOptsPath = path.join(tmplInfo.path, ctx.configs.TEMPLATE_CONFIG)
   ctx.logger.debug('tmplOptsPath:', tmplOptsPath)
   const tmplOpts = await getOptions(tmplOptsPath)
@@ -136,7 +161,7 @@ module.exports = async () => {
   // 2. back up old tasks & options
   const taskFolder = ctx.utils.path.cwd('fbi')
   await ctx.utils.fs.move(taskFolder, taskFolder + '.bak')
-  ctx.logger.log('2. Old tasks and options backed up in `fbi.bak`.')
+  ctx.logger.log(`${num++}. Old tasks and options backed up in \`fbi.bak\`.`)
 
   // 3. copy new tasks & options
   await ctx.utils.fs.copy({
@@ -145,7 +170,8 @@ module.exports = async () => {
     quiet: true
   })
   ctx.logger.log(
-    `3. New tasks and options placed in \`${ctx.configs.TEMPLATE_TASKS}\`.`
+    `${num++}. New tasks and options placed in \`${ctx.configs
+      .TEMPLATE_TASKS}\`.`
   )
 
   // 4. write merged options
@@ -153,14 +179,18 @@ module.exports = async () => {
     ctx.utils.path.cwd(ctx.configs.TEMPLATE_CONFIG),
     newOptsCnt
   )
-  ctx.logger.log('4. Merged options updated.')
+  ctx.logger.log(`${num++}. Merged options updated.`)
 
   // 5. add `fbi.bak` to .gitignore
   const gitignoreFilepath = ctx.utils.path.cwd('.gitignore')
   if (await ctx.utils.fs.exist(gitignoreFilepath)) {
     try {
       fs.appendFileSync(gitignoreFilepath, '\nfbi.bak')
-      ctx.logger.log('5. `fbi.bak` added to `.gitignore`.')
+      ctx.logger.log(`${num++}. \`fbi.bak\` added to \`.gitignore\`.`)
     } catch (err) {}
   }
+
+  // Install deps
+  await installDeps(tmplInfo)
+  ctx.logger.log(`${num++}. Missing dependencies installed.`)
 }
