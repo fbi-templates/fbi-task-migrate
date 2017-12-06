@@ -1,6 +1,6 @@
 {
   "name": "fbi-task-migrate",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Migrate a fbi 2.x project to 3.0",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,12 @@
     "release-minor": "npm version minor && git push && git push --tags",
     "release-major": "npm version major && git push && git push --tags"
   },
-  "keywords": ["fbi", "migrate", "backwards", "compatible"],
+  "keywords": [
+    "fbi",
+    "migrate",
+    "backwards",
+    "compatible"
+  ],
   "author": "fbi",
   "license": "MIT",
   "fbi": {
