@@ -1,6 +1,6 @@
 {
   "name": "fbi-task-migrate",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Migrate a fbi 2.x project to 3.0",
   "main": "index.js",
   "scripts": {
