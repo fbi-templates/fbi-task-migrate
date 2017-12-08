@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const rules = require('./rules')
 
 async function getOptions(optsFilePath) {
   if (await ctx.utils.fs.exist(optsFilePath)) {
@@ -29,7 +30,7 @@ async function setTemplateInfo(projOpts) {
   }
 
   const newTmplName = `${ctx.configs.TEMPLATE_PREFIX}${oldTmplName}`
-  let newVersion = 'v2.0.0'
+  let newVersion = rules[newTmplName].version
   const tmplInfo = ctx.stores[newTmplName]
   ctx.logger.debug('tmplInfo:\n', tmplInfo)
 
@@ -39,7 +40,11 @@ async function setTemplateInfo(projOpts) {
   }
 
   // Check if template version exist
-  if (!tmplInfo.version || !tmplInfo.version.all.includes(newVersion)) {
+  if (
+    !tmplInfo.version ||
+    !tmplInfo.version.all ||
+    !tmplInfo.version.all.includes(newVersion)
+  ) {
     ctx.logger.warn(
       `Template \`${newTmplName}\` version \`${newVersion}\` not exist.`
     )
@@ -68,64 +73,70 @@ async function setTemplateInfo(projOpts) {
   const newPkg = ctx.utils.assign({}, oldPkg, cfg)
   ctx.logger.debug('newPkg:\n', newPkg)
   await ctx.utils.fs.write(pkgPath, JSON.stringify(newPkg, null, 2))
-  return tmplInfo
+  return ctx.utils.assign({}, tmplInfo, {
+    targetVersion: newVersion
+  })
 }
 
-function mergeOptions(projOpts, tmplOpts) {
-  const replaceMap = [
-    {
-      src: 'server:.+?},',
-      dst: 'server:.+?},',
-      srcFlags: 's',
-      dstFlags: 's'
-    },
-    {
-      src: 'data:.+?}[^alias]+},',
-      dst: 'data:.+?}[^alias]+},',
-      srcFlags: 's',
-      dstFlags: 's'
-    },
-    {
-      src: 'alias:.+?}?}',
-      dst: 'alias:.+?}?}',
-      srcFlags: 'gs',
-      dstFlags: 's'
-    }
-  ]
-
-  replaceMap.map(item => {
-    const srcRegex = new RegExp(item.src, item.srcFlags)
-    ctx.logger.debug('srcRegex:\n', srcRegex)
-    const arr = projOpts.cnt.match(srcRegex)
-    const oldCnt = arr[arr.length - 1]
-    ctx.logger.debug('oldCnt:\n', oldCnt)
-
-    if (oldCnt) {
-      const dstRegex = new RegExp(item.dst, item.dstFlags)
-      ctx.logger.debug('dstRegex:\n', dstRegex)
-      tmplOpts.cnt = tmplOpts.cnt.replace(dstRegex, oldCnt)
-    }
+async function changeTemplateVersion(tmplInfo) {
+  const changed = await ctx.version.change({
+    dir: tmplInfo.path,
+    name: tmplInfo.fullname,
+    version: tmplInfo.targetVersion,
+    showlog: false,
+    logger: ctx.logger,
+    store: ctx.store
   })
+}
+
+function mergeOptions(projOpts, tmplOpts, tmplInfo) {
+  const _rules = rules[tmplInfo.fullname].rules
+  if (_rules) {
+    _rules.map(rule => {
+      const srcRegex = new RegExp(rule.reg, rule.flags || 's')
+      ctx.logger.debug('srcRegex:\n', srcRegex)
+      const arr = projOpts.cnt.match(srcRegex)
+      if (arr) {
+        const oldCnt = arr[arr.length - 1]
+        ctx.logger.debug('oldCnt:\n', oldCnt)
+
+        if (oldCnt) {
+          const dstRegex = new RegExp(rule.reg2 || rule.reg, rule.flags2 || 's')
+          ctx.logger.debug('dstRegex:\n', dstRegex)
+          tmplOpts.cnt = tmplOpts.cnt.replace(dstRegex, oldCnt)
+        }
+      }
+    })
+  }
+
   return tmplOpts.cnt
 }
 
-async function installDeps(tmplInfo) {
+async function installDeps(tmplInfo, deps) {
   // `Vue2`: install vue-template-compiler.
   try {
-    const localPKg = require(ctx.utils.path.cwd('package.json'))
-    switch (tmplInfo.fullname) {
-      case 'fbi-project-vue':
-        const vueVersion = localPKg.dependencies.vue
-        await ctx.install('', [`vue-template-compiler@${vueVersion}`], null, [
-          {
-            path: process.cwd(),
-            type: 'prod',
-            force: true
+    const opts = {
+      path: process.cwd(),
+      type: 'prod',
+      force: true
+    }
+    if (tmplInfo.fullname === 'fbi-project-vue') {
+      return Promise.all(
+        deps.map(async dep => {
+          if (dep === 'vue-template-compiler') {
+            const localPKg = require(ctx.utils.path.cwd('package.json'))
+            const vueVersion = localPKg.dependencies.vue
+            const pkgInfo = `${dep}@${vueVersion}`
+            await ctx.install('', [pkgInfo], null, [opts])
           }
-        ])
-        break
-      default:
-        break
+        })
+      )
+    } else {
+      return Promise.all(
+        deps.map(async dep => {
+          await ctx.install('', [dep], null, [opts])
+        })
+      )
     }
   } catch (err) {}
 }
@@ -141,22 +152,27 @@ module.exports = async () => {
     ) {
       return ctx.logger.log('Did nothing. This project has been migrated.')
     } else {
-      throw 'Local project options not found.'
+      throw 'Local project options not found. Please check if `fbi/config.js` exist.'
     }
   }
-  let num = 0
+  let num = 1
 
   // 1. set template info
-  const tmplInfo = await setTemplateInfo(projOpts)
+  const tmplInfo = await setTemplateInfo(projOpts, rules)
   if (!tmplInfo) {
     return
   }
+  const matchedRules = rules[tmplInfo.fullname]
   ctx.logger.log(`${num++}. Template information has set in \`paskage.json\`.`)
   const tmplOptsPath = path.join(tmplInfo.path, ctx.configs.TEMPLATE_CONFIG)
   ctx.logger.debug('tmplOptsPath:', tmplOptsPath)
+
+  // change template's version
+  await changeTemplateVersion(tmplInfo)
+
   const tmplOpts = await getOptions(tmplOptsPath)
 
-  const newOptsCnt = mergeOptions(projOpts, tmplOpts)
+  const newOptsCnt = mergeOptions(projOpts, tmplOpts, tmplInfo)
 
   // 2. back up old tasks & options
   const taskFolder = ctx.utils.path.cwd('fbi')
@@ -191,6 +207,8 @@ module.exports = async () => {
   }
 
   // Install deps
-  await installDeps(tmplInfo)
-  ctx.logger.log(`${num++}. Missing dependencies installed.`)
+  if (matchedRules.deps.length) {
+    await installDeps(tmplInfo, matchedRules.deps)
+    ctx.logger.log(`${num++}. Missing dependencies installed.`)
+  }
 }
