@@ -3,7 +3,7 @@ Migrate a fbi 2.x project to 3.0
 
 > This is a fbi task. If you haven't installed [fbi](https://github.com/AlloyTeam/fbi) yet, use the following command to install.
 >
-> `$ npm i -g fbi`
+> `$ npm i -g fbi` or `yarn global add fbi`
 
 [中文 README](./README_zh.md)
 
@@ -56,21 +56,24 @@ If you have custom options or custom building logic, you need to migrate them ma
 
 ## More
 - [Official templates](https://github.com/fbi-templates)
-- [fbi full documentation](https://neikvon.gitbooks.io/fbi/content/)
+- [`fbi` documentation](https://neikvon.gitbooks.io/fbi/content/)
+
+## License
+[MIT](https://opensource.org/licenses/MIT)
 
 ## Changelog
 
-- **2017.12.08** (`1.2.0`)
+- **1.2.0** (2017.12.08)
   - New feture: Support `fbi-project-mod`(formerly `fbi-template-mod`)
   - New feture: Change template version if necessary
   - New feture: Install missing dependencies if necessary
   - Bugs fixed
 
-- **2017.12.06** (`1.1.0`)
+- **1.1.0** (2017.12.06)
   - New feture: install missing dependencies automatically
 
-- **2017.12.06** (`1.0.1`)
+- **1.0.1** (2017.12.06)
   - Fix template path
 
-- **2017.12.06** (`1.0.0`)
+- **1.0.0** (2017.12.06)
   - Init. Support `fbi-project-vue`(formerly `fbi-template-vue`)

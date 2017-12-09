@@ -3,7 +3,7 @@
 
 > 这是一个fbi任务. 如果你还没有安装 [fbi](https://github.com/AlloyTeam/fbi) , 使用以下命令安装
 >
-> `$ npm i -g fbi`
+> `$ npm i -g fbi` 或 `yarn global add fbi`
 
 [README in English](./README.md)
 
@@ -58,19 +58,22 @@ $ fbi migrate
 - [官方模板库](https://github.com/fbi-templates)
 - [fbi完整文档](https://neikvon.gitbooks.io/fbi/content/)
 
+## 开源协议
+[MIT](https://opensource.org/licenses/MIT)
+
 ## 变更日志
 
-- **2017.12.08** (`1.2.0`)
+- **1.2.0** (2017.12.08)
   - 新特性: 支持 `fbi-project-mod`(以前的 `fbi-template-mod`)
   - 新特性: 更改模板版本的能力
   - 新特性: 安装缺失依赖的能力
   - 修复Bugs
 
-- **2017.12.06** (`1.1.0`)
+- **1.1.0** (2017.12.06)
   - 新特性: 自动安装缺失的依赖
 
-- **2017.12.06** (Version: `1.0.1`)
+- **1.0.1** (2017.12.06)
   - 修复模板路径错误
 
-- **2017.12.06** (Version: `1.0.0`)
+- **1.0.0** (2017.12.06)
    - 初始化. 支持 `fbi-project-vue`(以前的 `vue2`)
