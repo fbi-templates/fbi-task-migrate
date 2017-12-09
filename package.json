@@ -8,14 +8,17 @@
     "release-minor": "npm version minor && git push && git push --tags",
     "release-major": "npm version major && git push && git push --tags"
   },
-  "keywords": [
-    "fbi",
-    "migrate",
-    "backwards",
-    "compatible"
-  ],
-  "author": "fbi",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fbi-templates/fbi-task-migrate.git"
+  },
+  "keywords": ["migration", "migrate", "compatible", "fbi-task", "fbi"],
+  "author": "neikvon",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fbi-templates/fbi-task-migrate/issues"
+  },
+  "homepage": "https://github.com/fbi-templates/fbi-task-migrate#readme",
   "fbi": {
     "template": {
       "name": "fbi-task-migrate"
